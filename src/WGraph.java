@@ -2,29 +2,48 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
-import java.util.PriorityQueue;
 import java.util.Scanner;
 import java.util.Stack;
 
+/**
+ * 
+ * @author Lexi Reicks and Jacob Cram
+ *
+ */
 public class WGraph {
+	/**
+	 * Number of vertices in the graph
+	 */
 	public int V;
+	/**
+	 * Number of edges in the graph
+	 */
 	public int E;
+	/**
+	 * Height of the graph
+	 */
 	public int H;
+	/**
+	 * Width of the graph
+	 */
 	public int W;
+	/**
+	 * Adjacency list holding the edges
+	 */
 	public LinkedList<Edge> adj[];
-	private ArrayList<Edge> edges;
+	/**
+	 * List of vertices
+	 */
 	public Vertex[] vertices;
-	public int[][] graph;
 	
 	class Vertex {
 		private final int index;
 		private final int row;
 		private final int col;
 		
-		Vertex(int index, int row, int col) {
+		public Vertex(int index, int row, int col) {
 			this.index = index;
 			this.row = row;
 			this.col = col;
@@ -222,39 +241,38 @@ public class WGraph {
 	}
 	
 	class Dijkstra {
-		private int[] distTo;          // distTo[v] = distance  of shortest s->v path
-	    private Edge[] edgeTo;    // edgeTo[v] = last edge on shortest s->v path
-	    private IndexedMinPQ pq;    // priority queue of vertices
+		private int[] distTo;
+	    private Edge[] edgeTo;
+	    private IndexedMinPQ pq;
 	    Dijkstra(int ux, int uy) {
-	    	int source = findVertex(ux, uy);
+	    	int src = findVertex(ux, uy);
 			
-			if (source < 0) {
+			if (src < 0) {
 				throw new IllegalArgumentException("vertex (" + ux + ", " + uy + ") does not exist in the graph");
 			}
 			
-			distTo = new int[V()];
-			edgeTo = new Edge[V()];
+			distTo = new int[V];
+			edgeTo = new Edge[V];
 			
 			for (int i = 0; i < V(); i++) {
 				distTo[i] = Integer.MAX_VALUE;
 			}
 			
-			distTo[source] = 0;
+			distTo[src] = 0;
 			
-			pq = new IndexedMinPQ(V());
-			pq.add(source, distTo[source]);
+			pq = new IndexedMinPQ(V);
+			pq.add(src, distTo[src]);
 			
 			while (!pq.isEmpty()) {
 				int v = pq.extractMin();
 				
 				for (Edge e: adj(v)) {
-					relax(e);
+					updatePQ(e);
 				}
 			}
 		}
 	    
-	    // relax edge e and update pq if changed
-	    private void relax(Edge e) {
+	    private void updatePQ(Edge e) {
 	        int v = e.src(), w = e.dest();
 	        if (distTo[w] > distTo[v] + e.weight()) {
 	            distTo[w] = distTo[v] + e.weight();
@@ -268,16 +286,12 @@ public class WGraph {
 	    }
 		
 		public Stack<Edge> pathTo(int v) {
-			if (!hasPathTo(v)) return null;
+			if (!(distTo[v] < Integer.MAX_VALUE)) return null;
 			Stack<Edge> path = new Stack<Edge>();
 			for (Edge e = edgeTo[v]; e != null; e = edgeTo[e.src()]) {
 				path.add(e);
 			}
 			return path;
-		}
-		
-		public boolean hasPathTo(int v) {
-			return distTo[v] < Integer.MAX_VALUE;
 		}
 	}
 	
@@ -295,12 +309,9 @@ public class WGraph {
 	public WGraph(String FName) throws NumberFormatException, IOException {
 		File f = new File(FName);
 		
-		this.edges = new ArrayList<Edge>();
-		
 		this.parseFile(f);
 	}
 	
-	@SuppressWarnings("unchecked")
 	public void parseFile(File f) throws FileNotFoundException {
 		Scanner br = new Scanner(f);
 		
@@ -328,34 +339,10 @@ public class WGraph {
 		
 			int edgeWeight = br.nextInt();
 			
-			System.out.println("src: " + srcIndex + " dest: " + destIndex);
-			
 			addEdge(srcIndex, destIndex, edgeWeight);
 		}
 
 		br.close();
-	}
-	
-	public ArrayList<Edge> edges() {
-		return this.edges;
-	}
-	
-	public void addEdge(int src, int dest, int weight) {
-		Edge toAdd = new Edge(src, dest, weight);
-		this.adj[src].add(toAdd);
-		this.edges.add(toAdd);
-	}
-	
-	public LinkedList<Edge> adj(int v) {
-		return this.adj[v];
-	}
-	
-	public int E() {
-		return this.edges.size();
-	}
-	
-	public int V() {
-		return this.V;
 	}
 	
 	/**
@@ -376,6 +363,11 @@ public class WGraph {
 	 */
 	public ArrayList<Integer> V2V(int ux, int uy, int vx, int vy) {
 		ArrayList<Integer> output = new ArrayList<Integer>();
+		
+		if (!validateVertex(ux, uy) || !validateVertex(vx, vy)) {
+			return output;
+		}
+		
 		output.add(ux);
 		output.add(uy);
 		Dijkstra d = new Dijkstra(ux, uy);
@@ -389,19 +381,6 @@ public class WGraph {
 			output.add(dest[1]);
 		}
 		return output;
-	}
-	
-	public int[] findCoords(int index) {
-		Vertex v = this.vertices[index];
-		return v.coords();
-	}
-	
-	private int row(int index) {
-		return this.vertices[index].row;
-	}
-	
-	private int col(int index) {
-		return this.vertices[index].col;
 	}
 	
 	/**
@@ -426,6 +405,11 @@ public class WGraph {
 	 */
 	public ArrayList<Integer> V2S(int ux, int uy, ArrayList<Integer> S) {
 		ArrayList<Integer> output = new ArrayList<Integer>();
+		
+		if (!validateVertex(ux, uy)) {
+			return output;
+		}
+		
 		output.add(ux);
 		output.add(uy);
 		int[] dist = new int[S.size() / 2];
@@ -446,6 +430,10 @@ public class WGraph {
 				min = dist[i];
 				minIndex = v;
 			}
+		}
+		
+		if (minIndex == -1) {
+			return output;
 		}
 		
 		Stack<Edge> path = d.pathTo(minIndex);
@@ -497,6 +485,10 @@ public class WGraph {
 			}
 		}
 		
+		if (minD == null) {
+			return output;
+		}
+		
 		Stack<Edge> path = minD.pathTo(S2Vertex);
 		
 		output.add(this.vertices[S1Vertex].row);
@@ -512,6 +504,74 @@ public class WGraph {
 		return output;
 	}
 	
+	/**
+	 * Getter methods
+	 */
+	
+	public LinkedList<Edge> adj(int v) {
+		return adj[v];
+	}
+	
+	public int E() {
+		return E;
+	}
+	
+	public int V() {
+		return V;
+	}
+	
+	/**
+	 * Helper Methods
+	 */
+	public void addEdge(int src, int dest, int weight) {
+		Edge toAdd = new Edge(src, dest, weight);
+		this.adj[src].add(toAdd);
+	}
+	
+	public boolean validateVertex(int ux, int uy) {
+		for (Vertex v: this.vertices) {
+			if (v.row() == ux && v.col() == uy) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Gets the coordinates of a vertex
+	 * @param index
+	 * @return
+	 */
+	public int[] findCoords(int index) {
+		Vertex v = this.vertices[index];
+		return v.coords();
+	}
+	
+	/**
+	 * Gets the row of a vertex
+	 * @param index
+	 * @return
+	 */
+	private int row(int index) {
+		return this.vertices[index].row;
+	}
+	
+	/**
+	 * Gets the column of a vertex
+	 * @param index
+	 * @return
+	 */
+	private int col(int index) {
+		return this.vertices[index].col;
+	}
+	
+	/**
+	 * Finds a vertex's index by row/col
+	 * @param row
+	 * @param col
+	 * @return
+	 */
 	public int findVertex(int row, int col) {
 		int vertex = -1;
 
@@ -528,27 +588,5 @@ public class WGraph {
 		}
 		
 		return vertex;
-	}
-	
-	public static void main(String[] args) {
-		try {
-			WGraph g = new WGraph("src/graphinput.txt");
-			
-			ArrayList<Integer> path = g.V2V(1, 2, 5, 6);
-			
-			for (int i = 0; i < path.size(); i++) {
-				if (i % 2 == 0) {
-					System.out.print("(" + path.get(i));
-				} else {
-					System.out.print(", " + path.get(i) + ") \n");
-				}
-			}
-		} catch (NumberFormatException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 }

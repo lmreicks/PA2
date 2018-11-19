@@ -10,6 +10,11 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Scanner;
 
+/**
+ * 
+ * @author Lexi Reicks and Jacob Cram
+ *
+ */
 public class ImageProcessor extends WGraph {
 	
 	class Pixel extends Vertex {
@@ -24,9 +29,6 @@ public class ImageProcessor extends WGraph {
 	}
 	
 	/**
-	 * 
-	 * 
-	 * 
 	 * @param FName - path to file to read from
 	 * @throws IOException 
 	 * @throws NumberFormatException 
@@ -170,7 +172,7 @@ public class ImageProcessor extends WGraph {
 	 * @param FName
 	 * @throws IOException 
 	 */
-	public void writeReduced(int k, String FName) throws IOException {        
+	public void writeReduced(int k, String FName) throws IOException {     
         while (k > 0 && W > 0) {
     		File file = new File(FName);
             FileWriter fw = new FileWriter(file, false);
@@ -223,26 +225,6 @@ public class ImageProcessor extends WGraph {
             
             pr.close();
         }
-        
-        for (int i = 0; i < width(); i++) {
-        	System.out.print("     " + i + "      ");
-        }
-        
-        System.out.print("\n");
-        
-        for (int i = 0; i < H; i++) {
-        	System.out.print(i + "  ");
-        	for (int j = 0; j < W; j++) {
-        		System.out.print("[");
-        		for (int p = 0; p < 3; p++) {
-        			System.out.print(getPixelAt(i, j).pixel[p] + " ");
-        		}
-        		
-        		System.out.print("]");
-        	}
-        	
-        	System.out.print("\n");
-        }
 	}
 	
 	public Pixel[] getPixels() {
@@ -275,12 +257,12 @@ public class ImageProcessor extends WGraph {
 
 		for (int i = 0; i < H; i++) {
 			for (int j = 0; j < W; j++) {
-				int dest = i * this.W + j;
+				int dest = i * W + j;
 				this.adj[dest] = new LinkedList<Edge>();
 
 				if (i > 0) {					
 					int importance = I.get(i).get(j);
-					int rowAbove = (i - 1) * this.W;
+					int rowAbove = (i - 1) * W;
 					if (j > 0) {
 						Pixel aboveToLeft = getPixelAt(i - 1, j - 1);
 						// add this node to the edges of the node above and to the left of this node
@@ -311,88 +293,5 @@ public class ImageProcessor extends WGraph {
 	
 	public LinkedList<Edge> adj(int v) {
 		return this.adj[v];
-	}
-	
-	public static void main(String[] args) {
-		ImageProcessor ip;
-		try {
-			ip = new ImageProcessor("src/graphinput2.txt");
-		
-			// ArrayList<ArrayList<Integer>> importance = ip.getImportance();
-			
-	        File file = new File("src/importance.txt");
-	        FileWriter fr;
-			fr = new FileWriter(file, true);
-	        
-	        BufferedWriter br = new BufferedWriter(fr);
-	        PrintWriter pr = new PrintWriter(br);
-	        
-	        pr.println(ip.height());
-	        pr.println(ip.width());
-	        
-//	        for (int i = 0; i < ip.height(); i++) {
-//	    		StringBuilder sb = new StringBuilder();
-//	        	for (int j = 0; j < ip.width(); j++) {
-//	        		sb.append(importance.get(i).get(j) + "  ");
-//	        	}
-//	        	
-//	        	pr.println(sb);
-//	        }
-//	        
-	        pr.close();
-	        
-	        for (int i = 0; i < ip.width(); i++) {
-	        	System.out.print("     " + i + "      ");
-	        }
-	        
-	        System.out.print("\n");
-	        
-	        for (int i = 0; i < ip.H; i++) {
-	        	System.out.print(i + "  ");
-	        	for (int j = 0; j < ip.W; j++) {
-	        		System.out.print("[");
-	        		for (int p = 0; p < 3; p++) {
-	        			System.out.print(ip.getPixelAt(i, j).pixel[p] + " ");
-	        		}
-	        		
-	        		System.out.print("]");
-	        	}
-	        	
-	        	System.out.print("\n");
-	        }
-	        
-	        System.out.print("\n");
-	       
-	        System.out.print("\n");
-	        
-//	        for (ArrayList<Integer> i : importance) {
-//	        	for (Integer x : i) {
-//	        		System.out.print(x + "  ");
-//	        	}
-//	        	
-//	        	System.out.print("\n");
-//	        }
-//	        
-//        	System.out.print("\n");
-//        	
-//	        ArrayList<Integer> mc = ip.minVC(importance);
-//	        System.out.print("[");
-//	        for (int i = 0; i < mc.size(); i++) {
-//	        	System.out.print(mc.get(i));
-//	        	
-//	        	if (i < mc.size() - 1) {
-//	        		System.out.print(", ");
-//	        	}
-//	        }
-	        
-	        System.out.print("]");
-        	
-	        ip.writeReduced(1, "src/output.txt");
-        
-		} catch (FileNotFoundException e2) {
-			e2.printStackTrace();
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
 	}
 }
